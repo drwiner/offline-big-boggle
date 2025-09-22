@@ -17,7 +17,7 @@ An offline HTML-based Big Boggle board game that you can play directly in your b
 
 ## Scoring
 
-- 3-4 letters: 1 point
+- 4 letters: 1 point
 - 5 letters: 2 points
 - 6 letters: 3 points
 - 7 letters: 5 points
