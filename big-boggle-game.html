@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Boggle 5x5</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #5a67d8;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f7fafc;
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        .timer-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2d3748;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 8px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+
+        .cube {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            border: 3px solid #5a67d8;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #2d3748;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0) rotate(180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(90deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .cube:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        }
+
+        .cube.special {
+            font-size: 1.5em;
+        }
+
+        .cube.time-up {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%);
+            border-color: #dc2626;
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @media (max-width: 600px) {
+            .cube {
+                font-size: 1.5em;
+            }
+            
+            .cube.special {
+                font-size: 1.2em;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        .timer-running {
+            color: #48bb78;
+        }
+
+        .timer-expired {
+            color: #f56565;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎲 Big Boggle 5×5 🎲</h1>
+        
+        <div class="controls">
+            <div class="timer-section">
+                <label>Timer:</label>
+                <input type="number" id="timerMinutes" value="3" min="0" max="59">
+                <span>:</span>
+                <input type="number" id="timerSeconds" value="0" min="0" max="59">
+                <div class="timer-display" id="timerDisplay">3:00</div>
+            </div>
+            
+            <button id="startTimer" onclick="startTimer()">Start Timer</button>
+            <button id="stopTimer" onclick="stopTimer()" disabled>Stop Timer</button>
+            <button id="newBoard" onclick="generateNewBoard()">New Board</button>
+        </div>
+
+        <div class="board" id="board"></div>
+    </div>
+
+    <script>
+        const cubes = [
+            ['B', 'K', 'B', 'J', 'Z', 'X'],
+            ['A', 'A', 'F', 'R', 'S', 'A'],
+            ['D', 'H', 'O', 'T', 'D', 'N'],
+            ['O', 'T', 'T', 'T', 'M', 'E'],
+            ['D', 'N', 'A', 'N', 'E', 'N'],
+            ['I', 'I', 'E', 'I', 'T', 'T'],
+            ['T', 'I', 'L', 'S', 'E', 'P'],
+            ['E', 'E', 'E', 'E', 'A', 'A'],
+            ['N', 'E', 'M', 'N', 'G', 'A'],
+            ['S', 'F', 'R', 'I', 'A', 'A'],
+            ['O', 'T', 'T', 'U', 'O', 'O'],
+            ['S', 'U', 'S', 'E', 'N', 'S'],
+            ['G', 'E', 'E', 'U', 'M', 'A'],
+            ['A', 'S', 'I', 'R', 'F', 'Y'],
+            ['G', 'R', 'R', 'V', 'O', 'W'],
+            ['H', 'Z', 'R', 'L', 'O', 'D'],
+            ['L', 'E', 'T', 'I', 'I', 'S'],
+            ['A', 'E', 'M', 'E', 'E', 'E'],
+            ['W', 'O', 'N', 'O', 'T', 'U'],
+            ['H', 'O', 'L', 'D', 'H', 'R'],
+            ['C', 'T', 'E', 'S', 'C', 'N'],
+            ['P', 'Y', 'I', 'Y', 'S', 'R'],
+            ['O', 'W', 'D', 'N', 'H', 'H'],
+            ['T', 'I', 'S', 'C', 'E', 'P'],
+            ['An', 'He', 'Er', 'In', 'Qu', 'Th']
+        ];
+
+        let timerInterval = null;
+        let totalSeconds = 180;
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function generateNewBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            // Shuffle the cubes to randomize their positions
+            const shuffledCubes = shuffleArray(cubes);
+            
+            // For each cube, pick a random face and add to board
+            shuffledCubes.forEach((cube, index) => {
+                const randomFace = cube[Math.floor(Math.random() * 6)];
+                const cubeElement = document.createElement('div');
+                cubeElement.className = 'cube';
+                
+                // Check if this is the special cube with 2-letter combinations
+                if (randomFace.length > 1) {
+                    cubeElement.classList.add('special');
+                }
+                
+                cubeElement.textContent = randomFace;
+                
+                // Add staggered animation
+                cubeElement.style.animationDelay = `${index * 0.02}s`;
+                
+                board.appendChild(cubeElement);
+            });
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.textContent = display;
+            
+            if (totalSeconds > 0) {
+                timerDisplay.className = 'timer-display timer-running';
+            } else {
+                timerDisplay.className = 'timer-display timer-expired';
+            }
+        }
+
+        function startTimer() {
+            // Get the values from inputs
+            const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+            const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+            totalSeconds = minutes * 60 + seconds;
+            
+            if (totalSeconds <= 0) {
+                alert('Please set a valid timer duration!');
+                return;
+            }
+            
+            // Clear any existing timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Update button states
+            document.getElementById('startTimer').disabled = true;
+            document.getElementById('stopTimer').disabled = false;
+            document.getElementById('timerMinutes').disabled = true;
+            document.getElementById('timerSeconds').disabled = true;
+            
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                totalSeconds--;
+                updateTimerDisplay();
+                
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    
+                    // Turn all cubes red
+                    const allCubes = document.querySelectorAll('.cube');
+                    allCubes.forEach((cube, index) => {
+                        setTimeout(() => {
+                            cube.classList.add('time-up');
+                        }, index * 30);
+                    });
+                    
+                    setTimeout(() => {
+                        alert('⏰ Time\'s up!');
+                    }, 500);
+                    
+                    stopTimer();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Clear any red styling from cubes
+            const allCubes = document.querySelectorAll('.cube');
+            allCubes.forEach(cube => {
+                cube.classList.remove('time-up');
+            });
+            
+            // Update button states
+            document.getElementById('startTimer').disabled = false;
+            document.getElementById('stopTimer').disabled = true;
+            document.getElementById('timerMinutes').disabled = false;
+            document.getElementById('timerSeconds').disabled = false;
+            
+            // Reset display
+            const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+            const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+            totalSeconds = minutes * 60 + seconds;
+            updateTimerDisplay();
+            document.getElementById('timerDisplay').className = 'timer-display';
+        }
+
+        // Initialize board on load
+        window.onload = () => {
+            generateNewBoard();
+            updateTimerDisplay();
+        };
+    </script>
+</body>
+</html>
