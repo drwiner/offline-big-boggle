@@ -2,6 +2,8 @@
 
 An offline HTML-based Big Boggle board game that you can play directly in your browser.
 
+![Big Boggle Game Screenshot](screenshot.png)
+
 ## Features
 
 - 5x5 Big Boggle game board
